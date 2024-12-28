@@ -9,9 +9,9 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddIngHttpClient(this IServiceCollection services)
     {
-        services.AddHttpClient<BankClient>(client =>
+        services.AddHttpClient(Constants.IngClientName, client =>
         {
-            client.BaseAddress = new Uri("");
+            client.BaseAddress = new Uri("https://api.ing.com/");
         });
 
         return services;
