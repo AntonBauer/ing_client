@@ -11,7 +11,18 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpClient(Constants.IngClientName, client =>
         {
-            client.BaseAddress = new Uri("https://api.ing.com/");
+            // ToDo: extract from configuration
+            client.BaseAddress = new Uri("https://api.sandbox.ing.com/");
+        })
+        .ConfigurePrimaryHttpMessageHandler(provider =>
+        {
+            return new HttpClientHandler
+            {
+                ClientCertificateOptions = ClientCertificateOption.Manual,
+                SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+                // ToDo: extract certificates data from configuration
+                // ClientCertificates = {}
+            };
         });
 
         return services;
