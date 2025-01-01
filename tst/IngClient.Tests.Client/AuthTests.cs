@@ -11,17 +11,17 @@ public class AuthTests
     public async Task Auth()
     {
         // Arrange
-        var certificate = LoadCertificate();
+        var certs = LoadCertificates();
         using var client = new HttpClient(new HttpClientHandler()
         {
             ClientCertificateOptions = ClientCertificateOption.Manual,
             SslProtocols = System.Security.Authentication.SslProtocols.Tls12,
-            ClientCertificates = { certificate }
+            ClientCertificates = { certs.RequestAuth }
         });
         client.BaseAddress = new Uri("https://api.sandbox.ing.com/");
 
         var clientId = "e77d776b-90af-4684-bebc-521e5b2614dd";
-        var request = await CreateRequest(certificate, clientId);
+        var request = await CreateRequest(certs.Signature, clientId);
 
         // Act
         var response = await client.SendAsync(request);
@@ -33,20 +33,22 @@ public class AuthTests
 
     private static async Task<HttpRequestMessage> CreateRequest(X509Certificate2 certificate, string clientId)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "oauth2/token");
+        var request = new HttpRequestMessage(HttpMethod.Post, "oauth2/token")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } }),
+        };
 
-        AddContent(request, clientId);
+        AddContent(request);
         await AddHeaders(request, certificate, clientId);
 
         return request;
     }
 
-    private static void AddContent(HttpRequestMessage request, string clientId)
+    private static void AddContent(HttpRequestMessage request)
     {
         var parameters = new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
-            // { "client_id", clientId }
         };
 
         request.Content = new FormUrlEncodedContent(parameters);
@@ -69,10 +71,12 @@ public class AuthTests
         request.Headers.Add("Authorization", $"Signature keyId=\"{clientId}\",algorithm=\"rsa-sha256\",headers=\"(request-target) date digest\",signature=\"{signature}\"");
     }
 
-    private static X509Certificate2 LoadCertificate()
+    private static (X509Certificate2 RequestAuth, X509Certificate2 Signature) LoadCertificates()
     {
-        var cert = X509CertificateLoader.LoadPkcs12FromFile("/home/anton/Downloads/tls.pfx", "a");
-        return cert;
+        var auth = X509CertificateLoader.LoadPkcs12FromFile("/home/anton/Downloads/auth.pfx", "a");
+        var sign = X509CertificateLoader.LoadPkcs12FromFile("/home/anton/Downloads/sign.pfx", "a");
+
+        return (auth, sign);
     }
 
     private static string Sign(X509Certificate2 certificate, string toSign)
@@ -86,10 +90,7 @@ public class AuthTests
 
     private static string ComputeDigest(string data)
     {
-        var bytes = Encoding.UTF8.GetBytes(data);
-        var hash = SHA256.HashData(bytes);
-        var base64 = Convert.ToBase64String(hash);
-
-        return base64;
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(data));
+        return Convert.ToBase64String(hash);
     }
 }
