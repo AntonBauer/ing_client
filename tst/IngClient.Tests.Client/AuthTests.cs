@@ -2,7 +2,6 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Microsoft.VisualBasic;
 
 namespace IngClient.Tests.Client;
 
@@ -53,15 +52,16 @@ public class AuthTests
         request.Content = new FormUrlEncodedContent(parameters);
     }
 
-    private static void AddHeaders(HttpRequestMessage request, X509Certificate2 certificate, string clientId)
+    private static async void AddHeaders(HttpRequestMessage request, X509Certificate2 certificate, string clientId)
     {
-        var digest = "";
+        var payload = await request.Content.ReadAsStringAsync();
+        var digest = $"SHA-256={ComputeDigest(payload)}";
 
         var date = DateTime.UtcNow.ToString("r");
-        var toSign = $"POST {request.RequestUri}\ndate:{date}\ndigest: {digest}";
+
+        var toSign = $"{request.Method} {request.RequestUri}\ndate:{date}\ndigest: {digest}";
         var signature = Sign(certificate, toSign);
 
-        // request.Headers.Add("TPP-Signature-Certificate", "");
         request.Headers.Add("Accept", "application/json");
         request.Headers.Add("Date", date);
         request.Headers.Add("Digest", digest);
@@ -79,6 +79,15 @@ public class AuthTests
         var data = Encoding.UTF8.GetBytes(toSign);
         var signed = certificate.GetRSAPrivateKey()!.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         var base64 = Convert.ToBase64String(signed);
+
+        return base64;
+    }
+
+    private static string ComputeDigest(string data)
+    {
+        var bytes = Encoding.UTF8.GetBytes(data);
+        var hash = SHA256.HashData(bytes);
+        var base64 = Convert.ToBase64String(hash);
 
         return base64;
     }
