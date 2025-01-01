@@ -61,7 +61,7 @@ public class AuthTests
 
         var date = DateTime.UtcNow.ToString("r");
 
-        var toSign = $"(request-target): {request.Method} {request.RequestUri}{Environment.NewLine}date: {date}{Environment.NewLine}digest: {digest}";
+        var toSign = $"(request-target): post /oauth2/token\ndate: {date}\ndigest: {digest}";;
         var signature = Sign(certificate, toSign);
 
         request.Headers.Clear();
