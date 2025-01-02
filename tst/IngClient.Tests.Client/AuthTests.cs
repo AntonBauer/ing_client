@@ -5,7 +5,8 @@ using Moq;
 
 namespace IngClient.Tests.Client;
 
-public class AuthTests
+[TestFixture]
+internal sealed class AuthTests
 {
     [Test]
     public async Task Auth()
