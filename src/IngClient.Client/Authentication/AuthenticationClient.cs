@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using IngClient.Client.Authentication.Models;
+using IngClient.Client.Models.Auth;
 
 namespace IngClient.Client.Authentication;
 

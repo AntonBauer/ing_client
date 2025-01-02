@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using IngClient.Client.Authentication.Models;
+using IngClient.Client.Models.Auth;
 
 namespace IngClient.Client.Authentication;
 

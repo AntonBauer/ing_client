@@ -1,4 +1,4 @@
-namespace IngClient.Client.Models;
+namespace IngClient.Client.Models.Account;
 
 internal readonly record struct AccountInfo
 {

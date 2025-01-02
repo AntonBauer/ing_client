@@ -1,4 +1,4 @@
-using System.Transactions;
+namespace IngClient.Client.Models.Account;
 
 internal readonly record struct Transactions
 {

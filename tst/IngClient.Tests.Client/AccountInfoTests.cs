@@ -1,6 +1,6 @@
 using System.Security.Cryptography.X509Certificates;
 using IngClient.Client.Authentication;
-using IngClient.Client.Authentication.Models;
+using IngClient.Client.Models.Auth;
 using Moq;
 
 namespace IngClient.Tests.Client;

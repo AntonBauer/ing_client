@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace IngClient.Client.Authentication.Models;
+namespace IngClient.Client.Models.Auth;
 
 internal readonly record struct TokenResponse
 {

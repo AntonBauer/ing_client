@@ -1,5 +1,5 @@
 using System.Net.Http.Json;
-using IngClient.Client.Models;
+using IngClient.Client.Models.Account;
 
 internal sealed class AccountInformationClient(IHttpClientFactory httpClientFactory)
 {
