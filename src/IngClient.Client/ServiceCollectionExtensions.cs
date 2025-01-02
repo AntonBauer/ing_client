@@ -1,3 +1,4 @@
+using IngClient.Client.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IngClient.Client;
@@ -5,7 +6,9 @@ namespace IngClient.Client;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBankClient(this IServiceCollection services) =>
-        services.AddTransient<IBankClient, BankClient>().AddIngHttpClient();
+        services.AddTransient<IBankClient, BankClient>()
+                .AddIngHttpClient()
+                .AddInternalClients();
 
     private static IServiceCollection AddIngHttpClient(this IServiceCollection services)
     {
@@ -27,4 +30,8 @@ public static class ServiceCollectionExtensions
 
         return services;
     }
+
+    private static IServiceCollection AddInternalClients(this IServiceCollection services) =>
+        services.AddTransient<AuthenticationClient>()
+                .AddTransient<AccountInformationClient>();
 }

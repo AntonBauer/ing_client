@@ -1,21 +1,56 @@
 using System.Net.Http.Json;
+using IngClient.Client.AccountInformation;
+using IngClient.Client.Authentication;
 using IngClient.Client.Models.Account;
+using IngClient.Client.Models.Auth;
 
 internal sealed class AccountInformationClient(IHttpClientFactory httpClientFactory)
 {
-    public async Task<AccountInfo> AccountDetailsAsync(CancellationToken cancellationToken)
+    public async Task<AccountInfo> AccountDetailsAsync(AuthData authData,
+                                                       TokenResponse tokenResponse,
+                                                       CancellationToken cancellationToken)
     {
         using var client = httpClientFactory.CreateClient(Constants.IngClientName);
-        var accounts = await client.GetFromJsonAsync<AccountInfo[]>("v3/accounts", cancellationToken);
+        var request = await CreateRequest(authData, tokenResponse, cancellationToken);
 
-        return accounts.First();
+        var response = await client.SendAsync(request, cancellationToken);
+
+        var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+        var accounts = await response.Content.ReadFromJsonAsync<AccountInfo[]>(cancellationToken);
+
+        return accounts.FirstOrDefault();
     }
 
     public async Task<Transactions> TransactionsAsync(AccountInfo account, CancellationToken cancellationToken)
     {
         using var client = httpClientFactory.CreateClient(Constants.IngClientName);
-        var transactions = await client.GetFromJsonAsync<Transactions>($"v3/accounts/{account.Id}/transactions", cancellationToken);
+        throw new NotImplementedException();
+    }
 
-        return transactions;
+    private static async Task<HttpRequestMessage> CreateRequest(AuthData authData,
+                                                                TokenResponse tokenResponse,
+                                                                CancellationToken cancellationToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, AccountInformationConstants.AccountDetailsEndpoint);
+        await AddHeaders(request, authData, tokenResponse, cancellationToken);
+
+        return request;
+    }
+
+    private static async Task AddHeaders(HttpRequestMessage request,
+                                         AuthData authData,
+                                         TokenResponse tokenResponse,
+                                         CancellationToken cancellationToken)
+    {
+        var digest = await request.ComputeDigest(cancellationToken);
+        var date = DateTime.UtcNow.ToString("r");
+        var signature = string.Empty;
+
+        request.Headers.Add("Accept", "application/json");
+        request.Headers.Add("X-Request-ID", Guid.NewGuid().ToString());
+        request.Headers.Add("Authorization", tokenResponse.AccessToken);
+        request.Headers.Add("Date", date);
+        request.Headers.Add("Digest", digest);
+        request.Headers.Add("Signature", signature);
     }
 }

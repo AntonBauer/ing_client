@@ -9,28 +9,31 @@ internal sealed class AuthenticationClient(IHttpClientFactory httpClientFactory)
                                                 CancellationToken cancellationToken)
     {
         using var client = httpClientFactory.CreateClient(Constants.IngClientName);
-        using var request = await CreateRequest(authData);
+        using var request = await CreateRequest(authData, cancellationToken);
 
         var response = await client.SendAsync(request, cancellationToken);
 
         return await response.Content.ReadFromJsonAsync<TokenResponse>();
     }
 
-    private static async Task<HttpRequestMessage> CreateRequest(AuthData authData)
+    private static async Task<HttpRequestMessage> CreateRequest(AuthData authData,
+                                                                CancellationToken cancellationToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, AuthConstants.TokenEndpoint)
         {
             Content = new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } }),
         };
 
-        await AddHeaders(request, authData);
+        await AddHeaders(request, authData, cancellationToken);
 
         return request;
     }
 
-    private static async Task AddHeaders(HttpRequestMessage request, AuthData authData)
+    private static async Task AddHeaders(HttpRequestMessage request,
+                                         AuthData authData,
+                                         CancellationToken cancellationToken)
     {
-        var digest = await request.ComputeDigest();
+        var digest = await request.ComputeDigest(cancellationToken);
         var date = DateTime.UtcNow.ToString("r");
         var signature = request.Sign(date, digest, authData);
 
