@@ -47,7 +47,14 @@ internal sealed class AccountInfoTests
     [Test]
     public async Task GetAccountInfo()
     {
-        Assert.Pass();
+        // Arrange
+        var client = new AccountInformationClient(_httpClientFactory);
+
+        // Act
+        var info = await client.AccountDetailsAsync(_authData.Value, _tokenResponse.Value, CancellationToken.None);
+
+        // Assert
+        Assert.That(info, Is.Not.Empty);
     }
 
     [Test]

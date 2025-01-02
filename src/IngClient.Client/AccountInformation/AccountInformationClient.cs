@@ -10,7 +10,8 @@ internal sealed class AccountInformationClient(IHttpClientFactory httpClientFact
                                                        TokenResponse tokenResponse,
                                                        CancellationToken cancellationToken)
     {
-        using var client = httpClientFactory.CreateClient(Constants.IngClientName);
+        // ToDo: add client dispose
+        var client = httpClientFactory.CreateClient(Constants.IngClientName);
         var request = await CreateRequest(authData, tokenResponse, cancellationToken);
 
         var response = await client.SendAsync(request, cancellationToken);
@@ -44,11 +45,11 @@ internal sealed class AccountInformationClient(IHttpClientFactory httpClientFact
     {
         var digest = await request.ComputeDigest(cancellationToken);
         var date = DateTime.UtcNow.ToString("r");
-        var signature = string.Empty;
+        var signature = request.Sign(date, digest, authData);
 
         request.Headers.Add("Accept", "application/json");
         request.Headers.Add("X-Request-ID", Guid.NewGuid().ToString());
-        request.Headers.Add("Authorization", tokenResponse.AccessToken);
+        request.Headers.Add("Authorization", $"{tokenResponse.TokenType} {tokenResponse.AccessToken}");
         request.Headers.Add("Date", date);
         request.Headers.Add("Digest", digest);
         request.Headers.Add("Signature", signature);

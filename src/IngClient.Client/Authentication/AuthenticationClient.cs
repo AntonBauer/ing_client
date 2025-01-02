@@ -8,7 +8,8 @@ internal sealed class AuthenticationClient(IHttpClientFactory httpClientFactory)
     public async Task<TokenResponse> TokenAsync(AuthData authData,
                                                 CancellationToken cancellationToken)
     {
-        using var client = httpClientFactory.CreateClient(Constants.IngClientName);
+        // ToDo: add client dispose
+        var client = httpClientFactory.CreateClient(Constants.IngClientName);
         using var request = await CreateRequest(authData, cancellationToken);
 
         var response = await client.SendAsync(request, cancellationToken);

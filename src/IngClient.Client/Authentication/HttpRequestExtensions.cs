@@ -10,7 +10,10 @@ internal static class HttpRequestExtensions
     public static async Task<string> ComputeDigest(this HttpRequestMessage request,
                                                    CancellationToken cancellationToken)
     {
-        var payload = await request.Content.ReadAsStringAsync(cancellationToken);
+        var payload = request.Content == null
+            ? string.Empty
+            : await request.Content.ReadAsStringAsync(cancellationToken);
+
         return $"SHA-256={payload.ComputeDigest()}";
     }
 
